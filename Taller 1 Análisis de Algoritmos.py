@@ -1,0 +1,87 @@
+import random
+import copy
+
+# Generar una matriz aleatoria de tamaño 10x10
+def generar_matriz(n, min_val=1, max_val=6):
+    return [[random.randint(min_val, max_val) for _ in range(n)] for _ in range(n)]
+
+# Función para encontrar la región conectada a partir de (i, j)
+def encontrar_region(matriz, i, j, valor, visitado):
+    n = len(matriz)
+    region = []
+    stack = [(i, j)]
+    
+    while stack:
+        x, y = stack.pop()
+        if (x, y) not in visitado and matriz[x][y] == valor:
+            visitado.add((x, y))
+            region.append((x, y))
+            # Movimientos válidos (arriba, abajo, izquierda, derecha)
+            if x > 0: stack.append((x - 1, y))  # Arriba
+            if x < n - 1: stack.append((x + 1, y))  # Abajo
+            if y > 0: stack.append((x, y - 1))  # Izquierda
+            if y < n - 1: stack.append((x, y + 1))  # Derecha
+    
+    return region
+
+# Función para aplicar un cambio de número en una región
+def aplicar_cambio(matriz, region, nuevo_valor):
+    nueva_matriz = copy.deepcopy(matriz)
+    for (x, y) in region:
+        nueva_matriz[x][y] = nuevo_valor
+    return nueva_matriz
+
+# Función de backtracking para encontrar el mínimo número de pasos
+def backtracking(matriz, pasos, max_pasos, secuencia, mejor_secuencia, mejor_pasos):
+    # Si ya llenamos toda la matriz, comparamos la secuencia actual con la mejor
+    if all(all(matriz[i][j] == matriz[0][0] for j in range(len(matriz))) for i in range(len(matriz))):
+        if pasos < mejor_pasos[0]:
+            mejor_pasos[0] = pasos
+            mejor_secuencia[0] = list(secuencia)
+        return
+    
+    # Limite de pasos
+    if pasos >= max_pasos:
+        return
+    
+    n = len(matriz)
+    visitado = set()
+    region = encontrar_region(matriz, 0, 0, matriz[0][0], visitado)
+    
+    # Intentar cambiar al resto de los números posibles
+    for nuevo_valor in range(1, 7):
+        if nuevo_valor != matriz[0][0]:
+            nueva_matriz = aplicar_cambio(matriz, region, nuevo_valor)
+            secuencia.append(nuevo_valor)
+            backtracking(nueva_matriz, pasos + 1, max_pasos, secuencia, mejor_secuencia, mejor_pasos)
+            secuencia.pop()
+
+# Función principal
+def jugar_virus():
+    n = 10
+    matriz = generar_matriz(n)
+    print("Matriz inicial:")
+    for fila in matriz:
+        print(fila)
+
+    mejor_pasos = [float('inf')]
+    mejor_secuencia = [[]]
+    
+    backtracking(matriz, 0, 25, [], mejor_secuencia, mejor_pasos)
+    
+    print("\nMejor secuencia de movimientos:")
+    print(mejor_secuencia[0])
+    print(f"Pasos mínimos: {mejor_pasos[0]}")
+    
+    return mejor_secuencia[0], mejor_pasos[0]
+
+# Ejecutar el juego
+jugar_virus()
+
+# Nombre Estudiante:Cristian Chala Seccion:411 Rut:19.958.178-3
+#Explicacion abreviada de funciones:
+#generar_matriz: Crea una matriz de 10x10 con valores aleatorios entre 1 y 6.
+#encontrar_region: Encuentra todas las celdas conectadas (horizontal y verticalmente) que tienen el mismo número que la celda [0,0].
+#aplicar_cambio: Cambia el número de una región conectada al nuevo valor seleccionado.
+#backtracking: Realiza el proceso de backtracking probando diferentes secuencias de cambios y guardando la mejor secuencia (con el menor número de pasos).
+#jugar_virus: Controla el flujo del juego y muestra la secuencia óptima de cambios.
